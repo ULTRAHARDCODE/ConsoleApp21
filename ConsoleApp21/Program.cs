@@ -1,17 +1,13 @@
-﻿using System.IO;
+﻿using Newtonsoft.Json;
+using static System.Formats.Asn1.AsnWriter;
 GameManager gameManager = new GameManager();
-gameManager.BeginingTheGame();
-
-//IPlayer computer = new Computer(map, 'X');
-//IPlayer computer2 = new Computer(map, 'O');
+gameManager.LoadListWithUsers();
 
 
-
-
-//if (computer is Computer && computer2 is Computer)
-//{
-//    map.PrintField();
-//}
+while (true)
+{
+    gameManager.BeginingTheGame();
+}
 
 
 class Map
@@ -68,9 +64,6 @@ class Map
 
     }
 
-
-
-
     public void PrintField()
     {
         for (int i = 0; i < _size; i++)
@@ -103,6 +96,7 @@ class Element
 
 class GameManager
 {
+    int size = 3;
     public int CountUsers = 2;
     public int turn = 0;
     public List<User> users = new List<User>();
@@ -111,33 +105,52 @@ class GameManager
 
     public void BeginingTheGame()
     {
+
+        
         Console.WriteLine("Welcome to the ULTRA X0" +
                             "\n 1. PvP" +
                             "\n 2. PvE" +
                             "\n 3. Change field's size" +
                             "\n 4. Check Scorebar" +
-                            "\n 5. Exit");
+                            "\n 5. Save Scorebar" +
+                            "\n 6. Exit");
+
         byte input = Convert.ToByte(Console.ReadLine());
         switch (input)
         {
             case 1:
-                Map map = new Map(3);
+                Map map = new Map(size);
                 while (users.Count < 2)
                 {
                     AddUserFromApp(map);
                 }
-
-
+                Console.WriteLine("Are you want to add user?");
+                ConsoleKeyInfo input2 = Console.ReadKey();
+                if (input2.KeyChar == '+')
+                {
+                    AddUserFromApp(map);
+                }
                 Console.WriteLine("Choose your name");
-
                 EnterToUser1(EnterInput());
                 EnterToUser2(EnterInput());
                 StartGame(chooseUser1, chooseUser2, map);
                 break;
+            case 3:
+                ChangeSizeOfField();
+                break;
+            case 4:
+                PrintScoreBar();
+                break;
+            case 5:
+                SaveUsersToFile();
+                break;
+
 
 
         }
     }
+
+
 
     public byte EnterInput()
     {
@@ -168,11 +181,12 @@ class GameManager
                 player2.Move(map);
             }
 
-            turn++;
+            
             if (CheckWin(map))
             {
                 break;
             }
+            turn++;
         }
 
 
@@ -213,6 +227,8 @@ class GameManager
         }
     }
 
+
+
     public IPlayer EnterToUser1(byte input)
     {
         chooseUser1 = users[input];
@@ -224,6 +240,8 @@ class GameManager
         chooseUser2 = users[input];
         return chooseUser2;
     }
+
+
 
     private bool CheckWinHorisontal(Map map)
     {
@@ -313,28 +331,70 @@ class GameManager
 
 
     }
-
     private bool CheckWin(Map map)
     {
 
         if (CheckWinHorisontal(map) || CheckWinVertical(map) || CheckWinDiagonalFromUpToDown(map) || CheckWinDiagonalFromDownToUp(map))
         {
+            if (turn % 2 == 0)
+            {
+                chooseUser1.AddScoreToPlayer();
+            }
+            else
+            {
+                chooseUser2.AddScoreToPlayer();
+            }
+
             return true;
         }
         return false;
 
     } // проверка на выйгрыш
 
-    public void SaveUsersToFile(string path = "users.txt")
+
+
+
+    public void SaveUsersToFile(string name = "list.txt")
     {
-        using (StreamWriter writer = new StreamWriter(path))
+
+        string directory = Directory.GetCurrentDirectory();
+        string path = Path.Combine(directory, name);
+        string json = JsonConvert.SerializeObject(users, Formatting.Indented);
+        File.WriteAllText(path, json);
+    }
+    public void LoadListWithUsers()
+    {
+        string directory = Directory.GetCurrentDirectory();
+        string path = Path.Combine(directory, "list.txt");
+        if (File.Exists(path))
         {
-            foreach (var user in users)
-            {
-                writer.WriteLine($"{user.name}|{user.icon}|{user.score}");
-            }
+            string json = File.ReadAllText(path);
+            users = JsonConvert.DeserializeObject<List<User>>(json);
         }
-        Console.WriteLine("Users saved successfully.");
+        else { Console.WriteLine("File isn't found"); }
+    }
+    public void PrintScoreBar()
+    {
+
+        foreach (var user in users)
+        {
+            Console.WriteLine($"Name:{user.name}| Score: {user.score}");
+        }
+        Console.ReadLine();
+    }
+
+    public void ChangeSizeOfField()
+    {
+        Console.WriteLine("Enter size");
+        if (!int.TryParse(Console.ReadLine(), out int size))
+        {
+            Console.WriteLine("failed");
+        }
+        else
+        {
+            this.size = size;
+        }
+        
     }
 }
 
@@ -343,6 +403,8 @@ class GameManager
 interface IPlayer
 {
     public void Move(Map map);
+    public void AddScoreToPlayer();
+
 
 }
 
@@ -355,7 +417,10 @@ class Computer : IPlayer
         this.map = map;
         this.icon = icon;
     }
+    public void AddScoreToPlayer()
+    {
 
+    }
     public void Move(Map map)
     {
 
@@ -376,18 +441,22 @@ class Computer : IPlayer
 
 class User : IPlayer
 {
+    Map map;
     public int score;
     public string name;
-    Map map;
     public char icon;
 
+    public void AddScoreToPlayer()
+    {
+        score++;
+    }
     public User(Map map, char icon, string name)
     {
-        
+
         this.map = map;
         this.icon = icon;
         this.name = name;
-    }
+    } // Конструктор юзер
     public void Move(Map map)
     {
         bool turnIsOver = false;
@@ -427,7 +496,7 @@ class User : IPlayer
                     break;
             }
         }
-    }
+    } // Движение на кнопки
 }
 
 
