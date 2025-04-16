@@ -108,8 +108,6 @@ class GameManager
 
     public void BeginingTheGame()
     {
-
-        
         Console.WriteLine("Welcome to the ULTRA X0" +
                             "\n 1. PvP" +
                             "\n 2. PvE" +
@@ -149,35 +147,46 @@ class GameManager
                 SaveUsersToFile();
                 break;
             case 7:
-                var client = Network.Client.Connect("127.0.0.1", 8000);
-                bool isFindedPlayer = false;
-                bool yourMove = false;
-                client.OnMessage += (client, message) =>
+                try
                 {
-                    string cmd = message.Split(" ")[0];
-                    string[] args = message.Split(" ");
-                    switch (cmd)
+                    var client = Network.Client.Connect("62.84.101.222", 8000);
+                    bool isFindedPlayer = false;
+                    bool yourMove = false;
+                    client.OnMessage += (client, message) =>
                     {
-                        case "FIND_MATCH_PLAYERS":
-                            Console.WriteLine($"Игроков в поиске: {args[1]}");
-                            break;
-                        case "GAME_START":
-                            Console.WriteLine("Игра началась!");
-                            isFindedPlayer = true;
+                        string cmd = message.Split(" ")[0];
+                        string[] args = message.Split(" ");
+                        switch (cmd)
+                        {
+                            case "FIND_MATCH_PLAYERS":
+                                Console.WriteLine($"Игроков в поиске: {args[1]}");
+                                break;
+                            case "GAME_START":
+                                Console.WriteLine("Игра началась!");
+                                isFindedPlayer = true;
                             
-                            if (args[2] == "MOVE") yourMove = true;
-                            else yourMove = false;
-                            break;
-                    }
+                                if (args[2] == "MOVE") yourMove = true;
+                                else yourMove = false;
+                                break;
+                        }
     
-                };
-                client.Send("FIND_MATCHES_START");
+                    };
+                    client.Send("FIND_MATCHES_START");
 
-                while (isFindedPlayer == false) { }
-                var m = new Map(3);
+                    while (isFindedPlayer == false) { }
+                    var m = new Map(3);
                 
-                if (yourMove) StartGame(new OnlineUser(m, client), new OnlineUserEnemy(m, client), m);
-                else StartGame(new OnlineUserEnemy(m, client),new OnlineUser(m, client),  m);
+                    if (yourMove) StartGame(new OnlineUser(m, client), new OnlineUserEnemy(m, client), m);
+                    else StartGame(new OnlineUserEnemy(m, client),new OnlineUser(m, client),  m);
+
+                }
+                catch (Exception e)
+                {
+                    var defColor = Console.ForegroundColor;
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.WriteLine("Matchmaking is unavailable");
+                    Console.ForegroundColor = defColor;
+                }
                 
                 break;
 
