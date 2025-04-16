@@ -1,5 +1,8 @@
-﻿using Newtonsoft.Json;
+﻿using ConsoleApp21.Players.User;
+using Newtonsoft.Json;
 using static System.Formats.Asn1.AsnWriter;
+using ConsoleKeyInfo = System.ConsoleKeyInfo;
+
 GameManager gameManager = new GameManager();
 gameManager.LoadListWithUsers();
 
@@ -113,13 +116,14 @@ class GameManager
                             "\n 3. Change field's size" +
                             "\n 4. Check Scorebar" +
                             "\n 5. Save Scorebar" +
-                            "\n 6. Exit");
+                            "\n 6. Exit" +
+                            "\n 7. Matchmaking");
 
         byte input = Convert.ToByte(Console.ReadLine());
+        Map map = new Map(size);
         switch (input)
         {
             case 1:
-                Map map = new Map(size);
                 while (users.Count < 2)
                 {
                     AddUserFromApp(map);
@@ -144,7 +148,38 @@ class GameManager
             case 5:
                 SaveUsersToFile();
                 break;
+            case 7:
+                var client = Network.Client.Connect("127.0.0.1", 8000);
+                bool isFindedPlayer = false;
+                bool yourMove = false;
+                client.OnMessage += (client, message) =>
+                {
+                    string cmd = message.Split(" ")[0];
+                    string[] args = message.Split(" ");
+                    switch (cmd)
+                    {
+                        case "FIND_MATCH_PLAYERS":
+                            Console.WriteLine($"Игроков в поиске: {args[1]}");
+                            break;
+                        case "GAME_START":
+                            Console.WriteLine("Игра началась!");
+                            isFindedPlayer = true;
+                            
+                            if (args[2] == "MOVE") yourMove = true;
+                            else yourMove = false;
+                            break;
+                    }
+    
+                };
+                client.Send("FIND_MATCHES_START");
 
+                while (isFindedPlayer == false) { }
+                var m = new Map(3);
+                
+                if (yourMove) StartGame(new OnlineUser(m, client), new OnlineUserEnemy(m, client), m);
+                else StartGame(new OnlineUserEnemy(m, client),new OnlineUser(m, client),  m);
+                
+                break;
 
 
         }
