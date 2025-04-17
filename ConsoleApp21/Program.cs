@@ -13,90 +13,6 @@ while (true)
 }
 
 
-class Map
-{
-    public int _size;
-    public Element[,] Field;
-    public Map(int size)
-    {
-        Field = new Element[size, size];
-
-        _size = size;
-    } // конструктор
-
-    public bool Move(int x, int y, Element icon)
-    {
-
-        if (x < 0 || y < 0 || x >= _size || y >= _size)
-        {
-            return false;
-        }
-        if (Field[x, y] != null)
-        {
-            return false;
-        }
-
-
-        Field[x, y] = icon;
-        return true;
-    } //постановка символа
-
-    public void PrintMapWithCoursor(int x, int y)
-    {
-        for (int i = 0; i < _size; i++)
-        {
-            for (int j = 0; j < _size; j++)
-            {
-                if (x == i && y == j)
-                {
-                    if (Field[i, j] == null)
-                        Console.Write("[]");
-                    else
-                        Console.Write($"[{Field[i, j].Icon}]");
-                }
-                else
-                {
-                    if (Field[i, j] == null)
-                        Console.Write("- ");
-                    else
-                        Console.Write(Field[i, j].Icon + " ");
-                }
-            }
-            Console.WriteLine();
-        }
-
-    }
-
-    public void PrintField()
-    {
-        for (int i = 0; i < _size; i++)
-        {
-            for (int j = 0; j < _size; j++)
-            {
-                if (Field[i, j] == null)
-                {
-                    Console.Write("- ");
-                }
-                else
-                {
-                    Console.Write(Field[i, j].Icon + " ");
-                }
-            }
-            Console.WriteLine();
-        }
-    } // отрисовка поля
-}
-
-class Element
-{
-    public char Icon;
-
-    public Element(char icon)
-    {
-        Icon = icon;
-    } // конструктор иконки
-}
-
 class GameManager
 {
     int size = 3;
@@ -146,6 +62,7 @@ class GameManager
             case 5:
                 SaveUsersToFile();
                 break;
+            // Мой онлайн
             case 7:
                 try
                 {
@@ -162,9 +79,8 @@ class GameManager
                                 Console.WriteLine($"Игроков в поиске: {args[1]}");
                                 break;
                             case "GAME_START":
-                                Console.WriteLine("Игра началась!");
+                                Console.WriteLine($"Игра началась! №{args[1]}");
                                 isFindedPlayer = true;
-                            
                                 if (args[2] == "MOVE") yourMove = true;
                                 else yourMove = false;
                                 break;
@@ -224,9 +140,8 @@ class GameManager
             {
                 player2.Move(map);
             }
-
             
-            if (CheckWin(map))
+            if (Result.AllVariants(map, turn, player1, player2))
             {
                 break;
             }
@@ -286,121 +201,8 @@ class GameManager
     }
 
 
-
-    private bool CheckWinHorisontal(Map map)
-    {
-
-        for (int i = 0; i < map._size; i++)
-        {
-            for (int j = 0; j < map._size - 2; j++)
-            {
-
-
-                if (map.Field[i, j] == null || map.Field[i, j + 1] == null || map.Field[i, j + 2] == null) continue;
-                if (map.Field[i, j].Icon == map.Field[i, j + 1].Icon && map.Field[i, j].Icon == map.Field[i, j + 2].Icon)
-                {
-                    Console.WriteLine($"Win {map.Field[i, j].Icon}");
-                    return true;
-                }
-
-            }
-        }
-        return false;
-
-
-    }
-    private bool CheckWinVertical(Map map)
-    {
-
-        for (int i = 0; i < map._size - 2; i++)
-        {
-            for (int j = 0; j < map._size; j++)
-            {
-                if (map.Field[i, j] == null || map.Field[i + 1, j] == null || map.Field[i + 2, j] == null) continue;
-
-                if (map.Field[i, j].Icon == map.Field[i + 1, j].Icon && map.Field[i, j].Icon == map.Field[i + 2, j].Icon)
-                {
-                    Console.WriteLine($"Win {map.Field[i, j].Icon}");
-                    return true;
-
-                }
-
-            }
-
-        }
-        return false;
-
-
-    }
-    private bool CheckWinDiagonalFromUpToDown(Map map)
-    {
-        try
-        {
-            for (int i = 0; i < map._size - 2; i++)
-            {
-                for (int j = 0; j < map._size - 2; j++)
-                {
-                    if (map.Field[i, j] == null || map.Field[i + 1, j + 1] == null || map.Field[i + 2, j + 2] == null) continue;
-                    if (map.Field[i, j].Icon == map.Field[i + 1, j + 1].Icon && map.Field[i, j].Icon == map.Field[i + 2, j + 2].Icon)
-                    {
-                        Console.WriteLine($"Win {map.Field[i, j].Icon}");
-                        return true;
-                    }
-                }
-            }
-            return false;
-        }
-        catch
-        {
-            return false;
-        }
-    }
-    private bool CheckWinDiagonalFromDownToUp(Map map)
-    {
-
-        for (int i = 2; i < map._size; i++)
-        {
-            for (int j = 0; j < map._size - 2; j++)
-            {
-
-                if (map.Field[i, j] == null || map.Field[i - 1, j + 1] == null || map.Field[i - 2, j + 2] == null) continue;
-                if (map.Field[i, j].Icon == map.Field[i - 1, j + 1].Icon && map.Field[i, j].Icon == map.Field[i - 2, j + 2].Icon)
-                {
-                    Console.WriteLine($"Win {map.Field[i, j].Icon}");
-                    return true;
-                }
-            }
-        }
-        return false;
-
-
-    }
-    private bool CheckWin(Map map)
-    {
-
-        if (CheckWinHorisontal(map) || CheckWinVertical(map) || CheckWinDiagonalFromUpToDown(map) || CheckWinDiagonalFromDownToUp(map))
-        {
-            if (turn % 2 == 0)
-            {
-                chooseUser1.AddScoreToPlayer();
-            }
-            else
-            {
-                chooseUser2.AddScoreToPlayer();
-            }
-
-            return true;
-        }
-        return false;
-
-    } // проверка на выйгрыш
-
-
-
-
     public void SaveUsersToFile(string name = "list.txt")
     {
-
         string directory = Directory.GetCurrentDirectory();
         string path = Path.Combine(directory, name);
         string json = JsonConvert.SerializeObject(users, Formatting.Indented);
@@ -444,112 +246,8 @@ class GameManager
 
 
 
-interface IPlayer
-{
-    public void Move(Map map);
-    public void AddScoreToPlayer();
 
 
-}
-
-class Computer : IPlayer
-{
-    char icon;
-    Map map;
-    public Computer(Map map, char icon)
-    {
-        this.map = map;
-        this.icon = icon;
-    }
-    public void AddScoreToPlayer()
-    {
-
-    }
-    public void Move(Map map)
-    {
-
-        Random random = new Random();
-        int x = random.Next(0, map.Field.GetLength(0));
-        int y = random.Next(0, map.Field.GetLength(1));
-
-        while (map.Move(x, y, new Element(icon)) == false)
-        {
-            x = random.Next(0, map.Field.GetLength(0));
-            y = random.Next(0, map.Field.GetLength(1));
-        }
 
 
-    }
 
-}
-
-class User : IPlayer
-{
-    Map map;
-    public int score;
-    public string name;
-    public char icon;
-
-    public void AddScoreToPlayer()
-    {
-        score++;
-    }
-    public User(Map map, char icon, string name)
-    {
-
-        this.map = map;
-        this.icon = icon;
-        this.name = name;
-    } // Конструктор юзер
-    public void Move(Map map)
-    {
-        bool turnIsOver = false;
-        int x = 0;
-        int y = 0;
-
-
-        while (turnIsOver == false)
-        {
-            map.PrintMapWithCoursor(x, y);
-            ConsoleKeyInfo input = Console.ReadKey();
-            ConsoleKey button = input.Key;
-            Console.Clear();
-            switch (button)
-            {
-
-                case ConsoleKey.UpArrow:
-                    if (x > 0)
-                        x--;
-                    break;
-                case ConsoleKey.DownArrow:
-                    if (x < map._size - 1)
-                        x++;
-                    break;
-                case ConsoleKey.RightArrow:
-                    if (y < map._size - 1)
-                        y++;
-                    break;
-                case ConsoleKey.LeftArrow:
-                    if (y > 0)
-                        y--;
-                    break;
-                default:
-
-
-                    turnIsOver = map.Move(x, y, new Element(icon));
-                    break;
-            }
-        }
-    } // Движение на кнопки
-}
-
-
-enum MyAction
-{
-    PvP = 1,
-    PvE = 2,
-    ChangeSize = 3,
-    CheckMyScore = 4,
-    SaveScore = 5,
-    Exit = 6
-}

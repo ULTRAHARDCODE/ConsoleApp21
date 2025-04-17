@@ -37,6 +37,7 @@ class OnlineUserEnemy : IPlayer
         }
         enemyMove = false;
         map.Move(x, y, new Element('Y'));
+        Console.Clear();
     } // Движение на кнопки
 }
 

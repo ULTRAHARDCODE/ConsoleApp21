@@ -22,8 +22,15 @@ server.OnMessage += (client, message) => {
         case "GAME_MOVE":
             user.gameConnected?.moveGame(user, args[1], args[2], args[3], args[4]);
             break;
+        case "GAME_START":
+            break;
         case "GAME_END":
             user.gameConnected?.endGame(user);
+            break;
+        
+        case "LOGIN_REQUEST":
+            break;
+        case "GET_STATS":
             break;
     }
     
