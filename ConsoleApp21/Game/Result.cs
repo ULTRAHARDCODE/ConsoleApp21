@@ -80,14 +80,8 @@ public static class Result
     {
         if (Horizontal(map) || Vertical(map) || DiagonalFromUpToDown(map) || DiagonalFromDownToUp(map))
         {
-            if (turn % 2 == 0)
-            {
-                player1.AddScoreToPlayer();
-            }
-            else
-            {
-                player2.AddScoreToPlayer();
-            }
+            if (turn % 2 == 0) player1.AddScoreToPlayer();
+            else player2.AddScoreToPlayer();
 
             return true;
         }

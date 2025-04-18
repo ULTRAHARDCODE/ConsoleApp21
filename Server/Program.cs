@@ -83,9 +83,14 @@ public static class Manager
         Console.WriteLine("Количество игроков в поиске: "+playersFindMatches.Count);
         if (playersFindMatches.Count >= 2)
         {
-            var game = new Game(playersFindMatches[0], playersFindMatches[1]);
-            games.Add(game);
-            game.startGame();
+            Task.Run(() =>
+            {
+                var game = new Game(playersFindMatches[0], playersFindMatches[1]);
+                Task.Delay(100).Wait();
+                games.Add(game);
+                game.startGame();
+            });
+            
         }
     }
 

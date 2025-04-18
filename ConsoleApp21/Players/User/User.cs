@@ -1,4 +1,4 @@
-class User : IPlayer
+public class User : IPlayer
 {
     Map map;
     public int score;
